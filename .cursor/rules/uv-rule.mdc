@@ -1,0 +1,11 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+Make sure this project always uses UV
+UV install
+UV package management
+UV run pythonProgram.py
+UV virtual environment
+
