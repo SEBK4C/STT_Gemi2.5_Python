@@ -1,74 +1,126 @@
-# Podcast Audio Transcription with Gemini 2.5 Pro
+# Audio Transcription with Gemini 2.5 Pro (With outstanding accented language recognition and accuracy)
 
-This project uses Google's Gemini 2.5 Pro model to transcribe audio files, particularly podcasts. It includes features for handling multiple speakers with different accents and languages, and formats the transcript with timestamps.
+This project uses Google's Gemini 2.5 Pro model to transcribe audio files. It includes features for handling multiple speakers, different accents, multiple languages, and formats the transcript with timestamps. It can process individual audio files or all supported audio files within a directory and its subdirectories. Files longer than 59 minutes are automatically chunked, processed, and stitched back together.
 
 ## Features
 
-- Transcribes audio files (e.g., M4A, MP3) using Gemini 2.5 Pro.
-- Handles multiple speakers with distinct accents (configurable in the prompt).
-- Supports transcription of conversations involving multiple languages.
-- Provides confidence scores for uncertain words.
-- Formats the output with speaker identification and timestamps.
-- Processes the raw transcript to consolidate speaker segments for better readability.
-- Generates a bullet-point summary of the podcast content.
+-   **Transcription Engine**: Utilizes Google's Gemini 2.5 Pro model for audio-to-text conversion.
+-   **Input Handling**:
+    -   Accepts a single audio file path or a directory path as input via command-line argument.
+    -   If a directory is provided, it recursively scans for audio files.
+    -   Supported audio formats: `.m4a`, `.mp3`, `.wav`, `.flac`, `.ogg`, `.aac` (requires `ffmpeg` or `libav` for `pydub`).
+-   **Long Audio Processing (Chunking)**:
+    -   Automatically detects audio files longer than 59 minutes.
+    -   Splits long audio files into manageable chunks (currently 59-minute segments).
+    -   Transcribes each chunk individually.
+    -   Normalizes timestamps across chunks to ensure a continuous timeline in the final transcript.
+    -   Stitches chunk transcripts together to form one cohesive transcript.
+-   **Speaker & Language Handling**:
+    -   Designed to handle multiple speakers with distinct accents (configurable in the prompt template).
+    -   Supports transcription of conversations involving multiple languages.
+    -   Provides confidence scores for uncertain words (as per Gemini model capability).
+-   **Output Format**:
+    -   Generates a Markdown (`.md`) file for each processed audio file.
+    -   The output file is named after the input audio file (e.g., `audio.m4a` -> `audio.md`) and saved in the same directory as the input audio file.
+    -   The `.md` file includes:
+        -   `## Summary`: A bullet-point summary of the entire audio content (generated from the full, potentially stitched, transcript).
+        -   `## Transcript`: The full transcript formatted within a Markdown code block for readability and easy copying, with `HH:MM:SS` timestamps.
+-   **Overwrite Control**:
+    -   By default, skips processing an audio file if its corresponding `.md` output file already exists.
+    -   Provides a `--replace` (or `-r`) command-line flag to force overwrite of existing `.md` files.
+-   **Prompt Engineering**: Uses a Jinja2 template for detailed transcription instructions to the Gemini model.
+-   **Server-Side File Management**: Attempts to delete uploaded audio files/chunks from Google's servers after processing to manage cloud storage.
 
 ## Setup
 
-1.  **Google API Key:**
+1.  **Google API Key**:
     *   You need a Google API Key with access to the Gemini API.
-    *   The script expects the API key to be available via `userdata.get('GOOGLE_AI_STUDIO')` if running in Google Colab. For local execution, you will need to modify the script to load your API key, for example, from an environment variable or a configuration file.
-        ```python
-        # Example for local execution (replace with your key management)
-        # GOOGLE_API_KEY = "YOUR_GOOGLE_API_KEY"
-        # client = genai.Client(api_key=GOOGLE_API_KEY)
+    *   Create a `.env` file in the same directory as the `yt_gemini_2_5_pro_audio_transcription.py` script.
+    *   Add your API key to the `.env` file:
+        ```
+        GOOGLE_AI_STUDIO=your_actual_api_key_here
         ```
 
-2.  **Python Environment:**
-    *   Ensure you have Python installed.
-    *   Install the necessary libraries:
-        ```bash
-        pip install google-genai jinja2
-        ```
-    *   If you are not running in Google Colab, you will also need to install `ipython` if you want to use `IPython.display` for audio playback, though this is optional for the core transcription functionality.
-        ```bash
-        pip install ipython
-        ```
+2.  **Python Environment & Dependencies**:
+    *   Ensure you have Python installed (>=3.9 recommended).
+    *   **`ffmpeg` or `libav` Requirement**: The script uses the `pydub` library for audio manipulation (like duration checking and splitting). `pydub` relies on `ffmpeg` or `libav` to handle various audio formats. **You must have `ffmpeg` (recommended) or `libav` installed on your system and available in your system's PATH.**
+        -   Download `ffmpeg` from [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html)
+    *   You can manage dependencies using `uv` (or `pip`).
 
-3.  **Audio File:**
-    *   Place your audio file in a location accessible by the script.
-    *   Update the `file_path` variable in the script to point to your audio file.
-        ```python
-        file_path = "/path/to/your/audiofile.m4a" # Or .mp3, etc.
-        ```
-    *   If running locally, you won't be using Google Drive mounting, so the path will be a local system path.
+    **Using `uv` (Recommended Method 1 - Script-defined dependencies):**
+    If your `uv` version supports PEP 723 for `uv run`:
+    ```bash
+    # uv will read dependencies from the /// script block at the top of the Python file.
+    # No separate install step needed if you use `uv run` directly.
+    ```
+
+    **Using `uv` (Method 2 - Manual virtual environment):**
+    ```bash
+    # Create a virtual environment
+    uv venv
+    # Activate it (Linux/macOS)
+    source .venv/bin/activate
+    # Or (Windows)
+    # .venv\Scripts\activate
+    # Install dependencies
+    uv pip install google-genai jinja2 python-dotenv pydub
+    ```
+
+    **Using `pip` (Traditional method):**
+    ```bash
+    # Create a virtual environment (optional but recommended)
+    # python -m venv .venv
+    # source .venv/bin/activate # or .venv\Scripts\activate
+    pip install google-genai jinja2 python-dotenv pydub
+    ```
 
 ## Running the Script
 
-1.  **Configure the Prompt:**
-    *   Modify the `prompt_template` within the script if needed, especially the `speakers_list` to match the primary speakers in your audio.
-        ```python
-        speakers_list = ["Speaker1Name", "Speaker2Name"] # Update as needed
-        rendered_prompt = prompt_template.render(speakers=speakers_list)
-        ```
+1.  **Prepare your audio file(s)**.
+2.  **Open your terminal** and navigate to the project directory.
+3.  **Execute the script**, providing the path to your audio file or a directory containing audio files.
 
-2.  **Execute the Python Script:**
+    **Basic Usage (single file or directory):**
     ```bash
-    python yt_gemini_2_5_pro_podcast_audio_transcription.py
+    # Using uv run (if dependencies are in the script block)
+    uv run yt_gemini_2_5_pro_audio_transcription.py path/to/your/audio_or_directory
+
+    # Using python (if you manually created a venv and installed dependencies)
+    python yt_gemini_2_5_pro_audio_transcription.py path/to/your/audio_or_directory
+    ```
+    Examples:
+    ```bash
+    python yt_gemini_2_5_pro_audio_transcription.py Multi-Audio/episode1.m4a
+    python yt_gemini_2_5_pro_audio_transcription.py Multi-Audio/
     ```
 
-3.  **Output:**
-    *   The script will print the raw transcript, the processed transcript, and a summary to the console.
-    *   It will also attempt to play a sample audio file at the end if `IPython.display` is available and an audio file exists at `/content/HS4830417304.mp3` (this part is likely specific to the original Colab environment and might need adjustment or removal for local use).
+4.  **To Overwrite Existing Transcriptions:**
+    Use the `-r` or `--replace` flag:
+    ```bash
+    python yt_gemini_2_5_pro_audio_transcription.py path/to/your/audio_or_directory --replace
+    uv run yt_gemini_2_5_pro_audio_transcription.py path/to/your/audio_or_directory -r
+    ```
 
-## Script Overview
+5.  **Output:**
+    *   The script will print progress messages to the console.
+    *   For each processed audio file, an `.md` file containing the summary and transcript will be saved in the same directory as the source audio file.
 
--   **Initialization**: Sets up the Google GenAI client with an API key.
--   **Prompt Engineering**: Uses a Jinja2 template to create a detailed prompt for the Gemini model, specifying speaker characteristics, language expectations, and formatting guidelines.
--   **File Upload**: Uploads the audio file to the Google File API.
--   **Transcription**: Sends the prompt and the uploaded file to the `gemini-2.5-pro` model to generate the transcript.
--   **Timestamp Processing**: Includes functions (`timestamp_to_seconds`, `seconds_to_timestamp`) to convert timestamps between string format and total seconds.
--   **Transcript Processing**: The `process_transcript` function refines the raw transcript. It joins consecutive lines from the same speaker if they occur within a specified time window (`max_segment_duration`), improving readability.
--   **Summarization**: Sends the processed transcript to the Gemini model again with a new prompt to generate a bullet-point summary.
+## Script Overview (Key Functions)
+
+-   `main(input_path_arg, replace_flag)`: Parses command-line arguments and orchestrates file/directory processing.
+-   `process_audio_file(audio_file_path, replace_existing)`: Main logic for handling a single audio file. Checks duration, decides on chunking, calls processing functions, and manages output file creation.
+-   `_get_audio_duration_ms(file_path)`: Returns the duration of an audio file in milliseconds using `pydub`.
+-   `_split_audio_into_chunks(original_file_path, temp_dir_for_chunks)`: Splits a long audio file into smaller, manageable chunks.
+-   `_transcribe_and_process_segment(segment_path, time_offset_ms)`: Handles uploading a single audio segment (original file or chunk) to Google, getting the transcription, applying initial formatting, and normalizing timestamps based on the given offset.
+-   `_generate_summary_for_text(full_transcript_text)`: Sends the complete (potentially stitched) transcript to Gemini to generate a summary.
+-   `timestamp_to_seconds(ts_str)` & `seconds_to_timestamp(total_seconds)`: Utility functions for timestamp conversions.
+-   `process_transcript(input_text, max_segment_duration)`: Formats the raw transcript from Gemini (consolidates speaker lines, etc.).
+-   `get_output_path(input_audio_path)`: Determines the output `.md` file path based on the input audio file path.
+
+## Customization
+
+-   **Prompt Template**: The `prompt_template_text` variable in the script contains the detailed instructions given to the Gemini model. You can customize this, especially the `speakers_list`, to better suit your audio content.
+-   **Chunk Duration**: `MAX_CHUNK_DURATION_MINUTES` (currently 59 minutes) can be adjusted if needed, though an hour is a general guideline for many audio APIs.
 
 ## Adapting for Local Use (Outside Colab)
 
