@@ -84,7 +84,7 @@ if not GOOGLE_API_KEY:
 
 # Initialize GenAI Client (do this once)
 try:
-client = genai.Client(api_key=GOOGLE_API_KEY)
+    client = genai.Client(api_key=GOOGLE_API_KEY)
 except Exception as e:
     print(f"Failed to initialize Google GenAI Client: {e}")
     print("Please ensure your GOOGLE_AI_STUDIO key is correct and has access.")
@@ -342,7 +342,7 @@ def process_audio_file(audio_file_path, replace_existing):
             f.write(final_transcript_text)
             f.write("\n```\n")
         print(f"Successfully wrote summary and transcript to: {output_file_path}")
-except Exception as e:
+    except Exception as e:
         print(f"Error writing to output file {output_file_path}: {e}")
 
     print(f"--- Finished processing: {audio_file_path} ---")
