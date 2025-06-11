@@ -35,14 +35,14 @@ This project uses Google's Gemini 2.5 Pro model to transcribe audio files. It in
 
 1.  **Google API Key**:
     *   You need a Google API Key with access to the Gemini API.
-    *   Create a `.env` file in the same directory as the `yt_gemini_2_5_pro_audio_transcription.py` script.
+    *   Create a `.env` file in the same directory as the `Gemini_2_5_pro_audio_transcription.py` script.
     *   Add your API key to the `.env` file:
         ```
         GOOGLE_AI_STUDIO=your_actual_api_key_here
         ```
 
 2.  **Python Environment & Dependencies**:
-    *   Ensure you have Python installed (>=3.9 recommended).
+    *   Ensure you have Python installed (script is currently set to prefer ~=3.12, but >=3.9 should generally work).
     *   **`ffmpeg` or `libav` Requirement**: The script uses the `pydub` library for audio manipulation (like duration checking and splitting). `pydub` relies on `ffmpeg` or `libav` to handle various audio formats. **You must have `ffmpeg` (recommended) or `libav` installed on your system and available in your system's PATH.**
         -   Download `ffmpeg` from [https://ffmpeg.org/download.html](https://ffmpeg.org/download.html)
     *   You can manage dependencies using `uv` (or `pip`).
@@ -51,6 +51,7 @@ This project uses Google's Gemini 2.5 Pro model to transcribe audio files. It in
     If your `uv` version supports PEP 723 for `uv run`:
     ```bash
     # uv will read dependencies from the /// script block at the top of the Python file.
+    # Dependencies include: google-generativeai, jinja2, python-dotenv, pydub
     # No separate install step needed if you use `uv run` directly.
     ```
 
@@ -63,7 +64,7 @@ This project uses Google's Gemini 2.5 Pro model to transcribe audio files. It in
     # Or (Windows)
     # .venv\Scripts\activate
     # Install dependencies
-    uv pip install google-genai jinja2 python-dotenv pydub
+    uv pip install google-generativeai jinja2 python-dotenv pydub
     ```
 
     **Using `pip` (Traditional method):**
@@ -71,7 +72,7 @@ This project uses Google's Gemini 2.5 Pro model to transcribe audio files. It in
     # Create a virtual environment (optional but recommended)
     # python -m venv .venv
     # source .venv/bin/activate # or .venv\Scripts\activate
-    pip install google-genai jinja2 python-dotenv pydub
+    pip install google-generativeai jinja2 python-dotenv pydub
     ```
 
 ## Running the Script

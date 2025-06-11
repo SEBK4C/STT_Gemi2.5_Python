@@ -1,10 +1,10 @@
 # /// script
-# requires-python = ">=3.9"
+# requires-python = "~=3.12"
 # dependencies = [
-#   "google-genai",
+#   "google-generativeai",
 #   "jinja2",
 #   "python-dotenv",
-#   "pydub" # Added for audio manipulation (duration check, splitting)
+#   "pydub"
 # ]
 # ///
 # -*- coding: utf-8 -*-
@@ -28,23 +28,23 @@ Method 1: Using uv with embedded dependencies:
 1. Create a .env file in the same directory as this script with your Google API Key:
    GOOGLE_AI_STUDIO=your_api_key_here
 2. Run the script:
-   uv run yt_gemini_2_5_pro_audio_transcription.py path/to/your/audiofile_or_directory
+   uv run Gemini_2_5_pro_audio_transcription.py path/to/your/audiofile_or_directory
    To overwrite existing transcriptions:
-   uv run yt_gemini_2_5_pro_audio_transcription.py path/to/your/audiofile_or_directory --replace
+   uv run Gemini_2_5_pro_audio_transcription.py path/to/your/audiofile_or_directory --replace
 
 Method 2: Using uv with manual virtual environment setup:
 1. Create a virtual environment:
    uv venv
 2. Activate the virtual environment:
    source .venv/bin/activate  # For Linux/macOS
-   .venv\\\\Scripts\\\\activate    # For Windows
+   .venv\Scripts\activate    # For Windows
 3. Install dependencies:
-   uv pip install google-genai jinja2 python-dotenv pydub
+   uv pip install google-generativeai jinja2 python-dotenv pydub
 4. Create a .env file as described in Method 1.
 5. Run the script:
-   python yt_gemini_2_5_pro_audio_transcription.py path/to/your/audiofile_or_directory
+   python Gemini_2_5_pro_audio_transcription.py path/to/your/audiofile_or_directory
    To overwrite existing transcriptions:
-   python yt_gemini_2_5_pro_audio_transcription.py path/to/your/audiofile_or_directory --replace
+   python Gemini_2_5_pro_audio_transcription.py path/to/your/audiofile_or_directory --replace
 
 Original file was located at
     https://colab.research.google.com/drive/1p3VB7BIcZ0gRP--6BCqW_dRRGHZrtguM
@@ -52,7 +52,10 @@ Original file was located at
 # Google Gemini 2.5 Pro for Audio Understanding & Transcription
 """
 
-# #!pip -q install google-genai jinja2 # This line is for Colab, dependencies should be installed via uv pip install or handled by `uv run`
+# #!pip -q install google-generativeai jinja2 # This line is for Colab, dependencies should be installed via uv pip install or handled by `uv run`
+
+import sys
+print(f"DEBUG: Python version for script execution: {sys.version}")
 
 import os
 import argparse
